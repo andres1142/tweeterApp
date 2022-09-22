@@ -1,5 +1,6 @@
 package edu.byu.cs.tweeter.client.view.login;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -29,6 +30,7 @@ import java.util.concurrent.Executors;
 import edu.byu.cs.client.R;
 import edu.byu.cs.tweeter.client.backgroundTask.RegisterTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
+import edu.byu.cs.tweeter.client.presenter.RegisterPresenter;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -36,7 +38,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the register screen.
  */
-public class RegisterFragment extends Fragment {
+public class RegisterFragment extends Fragment implements RegisterPresenter.RegisterView {
     private static final String LOG_TAG = "RegisterFragment";
     private static final int RESULT_IMAGE = 10;
 
@@ -49,6 +51,7 @@ public class RegisterFragment extends Fragment {
     private ImageView imageToUpload;
     private TextView errorView;
     private Toast registeringToast;
+    private RegisterPresenter registerPresenter;
 
     /**
      * Creates an instance of the fragment and places the user and auth token in an arguments
@@ -87,12 +90,9 @@ public class RegisterFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 // Register and move to MainActivity.
-                try {
-                    validateRegistration();
-                    errorView.setText(null);
-                    registeringToast = Toast.makeText(getContext(), "Registering...", Toast.LENGTH_LONG);
-                    registeringToast.show();
-
+                if (imageToUpload.getDrawable() == null) {
+                    registerPresenter.noImageFound();
+                } else {
                     // Convert image to byte array.
                     Bitmap image = ((BitmapDrawable) imageToUpload.getDrawable()).getBitmap();
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -101,6 +101,13 @@ public class RegisterFragment extends Fragment {
 
                     // Intentionally, Use the java Base64 encoder so it is compatible with M4.
                     String imageBytesBase64 = Base64.getEncoder().encodeToString(imageBytes);
+                    registerPresenter.Register(firstName.getText().toString(), lastName.getText().toString(),
+                            alias.getText().toString(), password.getText().toString(),
+                            imageBytesBase64);
+
+                    errorView.setText(null);
+                    registeringToast = Toast.makeText(getContext(), "Registering...", Toast.LENGTH_LONG);
+                    registeringToast.show();
 
                     // Send register request.
                     RegisterTask registerTask = new RegisterTask(firstName.getText().toString(), lastName.getText().toString(),
@@ -108,12 +115,10 @@ public class RegisterFragment extends Fragment {
 
                     ExecutorService executor = Executors.newSingleThreadExecutor();
                     executor.execute(registerTask);
-                } catch (Exception e) {
-                    errorView.setText(e.getMessage());
                 }
             }
         });
-
+        registerPresenter = new RegisterPresenter(this);
         return view;
     }
 
@@ -129,33 +134,7 @@ public class RegisterFragment extends Fragment {
         }
     }
 
-    public void validateRegistration() {
-        if (firstName.getText().length() == 0) {
-            throw new IllegalArgumentException("First Name cannot be empty.");
-        }
-        if (lastName.getText().length() == 0) {
-            throw new IllegalArgumentException("Last Name cannot be empty.");
-        }
-        if (alias.getText().length() == 0) {
-            throw new IllegalArgumentException("Alias cannot be empty.");
-        }
-        if (alias.getText().charAt(0) != '@') {
-            throw new IllegalArgumentException("Alias must begin with @.");
-        }
-        if (alias.getText().length() < 2) {
-            throw new IllegalArgumentException("Alias must contain 1 or more characters after the @.");
-        }
-        if (password.getText().length() == 0) {
-            throw new IllegalArgumentException("Password cannot be empty.");
-        }
-
-        if (imageToUpload.getDrawable() == null) {
-            throw new IllegalArgumentException("Profile image must be uploaded.");
-        }
-    }
-
     // RegisterHandler
-
     private class RegisterHandler extends Handler {
         @Override
         public void handleMessage(@NonNull Message msg) {
@@ -189,4 +168,13 @@ public class RegisterFragment extends Fragment {
         }
     }
 
+    @Override
+    public void displayImageNotFound() {
+        errorView.setText("Profile image must be uploaded.");
+    }
+
+    @Override
+    public void clearErrorMessage() {
+        errorView.setText("");
+    }
 }
