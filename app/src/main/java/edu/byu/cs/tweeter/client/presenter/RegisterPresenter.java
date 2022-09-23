@@ -6,14 +6,26 @@ import android.graphics.drawable.BitmapDrawable;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 
+import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.service.UserService;
+import edu.byu.cs.tweeter.model.domain.AuthToken;
+import edu.byu.cs.tweeter.model.domain.User;
 
 public class RegisterPresenter implements UserService.RegisterObserver {
 
     //Methods that the presenter can call on the view(the contract)
     public interface RegisterView {
         void clearErrorMessage();
+
+        void displayErrorMessage(String message);
+
         void displayImageNotFound();
+
+        void clearInfoMessage();
+
+        void displayInfoMessage(String message);
+
+        void navigateToUser(User user, AuthToken token);
     }
 
     private RegisterView view;
@@ -54,23 +66,35 @@ public class RegisterPresenter implements UserService.RegisterObserver {
     public void Register(String firstName, String lastName, String username,
                          String password, String imageToUpload) {
         String errorMessage = validateRegistration(firstName, lastName, username, password);
-        //TODO: do something with the error
+
+        if (errorMessage == null) {
+            view.clearInfoMessage();
+            view.displayInfoMessage("Registering...");
+            new UserService().Register(firstName, lastName, username, password, imageToUpload, this);
+        } else {
+            view.displayErrorMessage(errorMessage);
+        }
     }
 
 
     //The methods related to observing the model layer
     @Override
-    public void handleRegisterSuccess() {
+    public void handleRegisterSuccess(User user, AuthToken token) {
+        view.clearInfoMessage();
+        view.clearErrorMessage();
+
+        view.displayInfoMessage("Hello " + Cache.getInstance().getCurrUser().getName());
+        view.navigateToUser(user, token);
+    }
+
+    @Override
+    public void handleRegisterFail(String message) {
+        view.displayInfoMessage("Failed to register: " + message);
 
     }
 
     @Override
-    public void handleRegisterFail() {
-
-    }
-
-    @Override
-    public void handleRegisterThrewException() {
-
+    public void handleRegisterThrewException(Exception e) {
+        view.displayInfoMessage("Failed to register because of exception: " + e.getMessage());
     }
 }

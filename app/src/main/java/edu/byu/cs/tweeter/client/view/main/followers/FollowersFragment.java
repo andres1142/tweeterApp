@@ -31,13 +31,15 @@ import edu.byu.cs.client.R;
 import edu.byu.cs.tweeter.client.backgroundTask.GetFollowersTask;
 import edu.byu.cs.tweeter.client.backgroundTask.GetUserTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
+import edu.byu.cs.tweeter.client.model.service.FollowService;
+import edu.byu.cs.tweeter.client.presenter.FollowersPresenter;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.User;
 
 /**
  * Implements the "Followers" tab.
  */
-public class FollowersFragment extends Fragment {
+public class FollowersFragment extends Fragment implements FollowersPresenter.FollowersView {
 
     private static final String LOG_TAG = "FollowersFragment";
     private static final String USER_KEY = "UserKey";
@@ -47,7 +49,12 @@ public class FollowersFragment extends Fragment {
 
     private static final int PAGE_SIZE = 10;
 
+    private ImageView userImage;
+    private TextView userAlias;
+    private TextView userName;
+    private Toast followersToast;
     private User user;
+    private FollowersPresenter followersPresenter;
 
     private FollowersRecyclerViewAdapter followersRecyclerViewAdapter;
 
@@ -86,6 +93,7 @@ public class FollowersFragment extends Fragment {
 
         followersRecyclerView.addOnScrollListener(new FollowRecyclerViewPaginationScrollListener(layoutManager));
 
+        followersPresenter = new FollowersPresenter(this);
         return view;
     }
 
@@ -93,10 +101,6 @@ public class FollowersFragment extends Fragment {
      * The ViewHolder for the RecyclerView that displays the follower data.
      */
     private class FollowersHolder extends RecyclerView.ViewHolder {
-
-        private final ImageView userImage;
-        private final TextView userAlias;
-        private final TextView userName;
 
         /**
          * Creates an instance and sets an OnClickListener for the user's row.
@@ -113,11 +117,7 @@ public class FollowersFragment extends Fragment {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    GetUserTask getUserTask = new GetUserTask(Cache.getInstance().getCurrUserAuthToken(),
-                            userAlias.getText().toString(), new GetUserHandler());
-                    ExecutorService executor = Executors.newSingleThreadExecutor();
-                    executor.execute(getUserTask);
-                    Toast.makeText(getContext(), "Getting user's profile...", Toast.LENGTH_LONG).show();
+                    followersPresenter.FollowersHolder(userAlias.getText().toString());
                 }
             });
         }
@@ -128,42 +128,14 @@ public class FollowersFragment extends Fragment {
          * @param user the user.
          */
         void bindUser(User user) {
-            if (user == null)
-                Log.e(LOG_TAG, "user is null!");
-            userAlias.setText(user.getAlias());
-            userName.setText(user.getName());
-
-            Picasso.get().load(user.getImageUrl()).into(userImage);
-
-        }
-
-        /**
-         * Message handler (i.e., observer) for GetUserTask.
-         */
-        private class GetUserHandler extends Handler {
-            @Override
-            public void handleMessage(@NonNull Message msg) {
-                boolean success = msg.getData().getBoolean(GetUserTask.SUCCESS_KEY);
-                if (success) {
-                    User user = (User) msg.getData().getSerializable(GetUserTask.USER_KEY);
-
-                    Intent intent = new Intent(getContext(), MainActivity.class);
-                    intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
-                    startActivity(intent);
-                } else if (msg.getData().containsKey(GetUserTask.MESSAGE_KEY)) {
-                    String message = msg.getData().getString(GetUserTask.MESSAGE_KEY);
-                    Toast.makeText(getContext(), "Failed to get user's profile: " + message, Toast.LENGTH_LONG).show();
-                } else if (msg.getData().containsKey(GetUserTask.EXCEPTION_KEY)) {
-                    Exception ex = (Exception) msg.getData().getSerializable(GetUserTask.EXCEPTION_KEY);
-                    Toast.makeText(getContext(), "Failed to get user's profile because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            }
+            followersPresenter.bindUserToView(user);
         }
     }
 
     /**
      * The adapter for the RecyclerView that displays the follower data.
      */
+    //TODO: Here
     private class FollowersRecyclerViewAdapter extends RecyclerView.Adapter<FollowersHolder> {
 
         private final List<User> users = new ArrayList<>();
@@ -187,8 +159,7 @@ public class FollowersFragment extends Fragment {
          * @param newUsers the users to add.
          */
         void addItems(List<User> newUsers) {
-            int startInsertPosition = users.size();
-            users.addAll(newUsers);
+            int startInsertPosition = followersPresenter.addItems(newUsers, users);
             this.notifyItemRangeInserted(startInsertPosition, newUsers.size());
         }
 
@@ -199,7 +170,7 @@ public class FollowersFragment extends Fragment {
          * @param user the user to add.
          */
         void addItem(User user) {
-            users.add(user);
+            followersPresenter.addItem(user, users);
             this.notifyItemInserted(users.size() - 1);
         }
 
@@ -210,8 +181,7 @@ public class FollowersFragment extends Fragment {
          * @param user the user to remove.
          */
         void removeItem(User user) {
-            int position = users.indexOf(user);
-            users.remove(position);
+            int position = followersPresenter.removeItem(user, users);
             this.notifyItemRemoved(position);
         }
 
@@ -384,4 +354,34 @@ public class FollowersFragment extends Fragment {
         }
     }
 
+    //View Methods
+    @Override
+    public void displayInfoMessage(String message){
+        followersToast =  Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+        followersToast.show();
+    }
+    @Override
+    public void clearInfoMessage(){
+        if (followersToast != null) {
+            followersToast.cancel();
+            followersToast = null;
+        }
+    }
+    @Override
+    public void bindUserView(User user){
+        if (user == null) {
+            Log.e(LOG_TAG, "user is null!");
+        }
+        userAlias.setText(user.getAlias());
+        userName.setText(user.getName());
+
+        Picasso.get().load(user.getImageUrl()).into(userImage);
+    }
+    @Override
+    public void getUser(User user){
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
+
+        startActivity(intent);
+    }
 }

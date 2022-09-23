@@ -31,11 +31,11 @@ public class UserService {
 
     //Register Observer
     public interface RegisterObserver {
-        void handleRegisterSuccess();
+        void handleRegisterSuccess(User user, AuthToken authToken);
 
-        void handleRegisterFail();
+        void handleRegisterFail(String message);
 
-        void handleRegisterThrewException();
+        void handleRegisterThrewException(Exception e);
     }
 
     public void LogIn(String password, String username, LogInObserver observer) {
@@ -49,12 +49,12 @@ public class UserService {
     public void Register(String firstName, String lastName, String username, String password,
                          String imageBytesBase64, RegisterObserver registerObserver) {
 
-/*        // Send register request.
+        // Send register request.
         RegisterTask registerTask = new RegisterTask(firstName, lastName,
                 username, password, imageBytesBase64, new RegisterHandler(registerObserver));
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(registerTask);*/
+        executor.execute(registerTask);
     }
 
     private class LoginHandler extends Handler {
@@ -87,8 +87,7 @@ public class UserService {
         }
     }
 
-/*    private class RegisterHandler extends Handler {
-
+    private class RegisterHandler extends Handler {
         private RegisterObserver registerObserver;
 
         public RegisterHandler(RegisterObserver registerObserver) {
@@ -102,28 +101,21 @@ public class UserService {
                 User registeredUser = (User) msg.getData().getSerializable(RegisterTask.USER_KEY);
                 AuthToken authToken = (AuthToken) msg.getData().getSerializable(RegisterTask.AUTH_TOKEN_KEY);
 
-                Intent intent = new Intent(getContext(), MainActivity.class);
-
                 Cache.getInstance().setCurrUser(registeredUser);
                 Cache.getInstance().setCurrUserAuthToken(authToken);
 
-                intent.putExtra(MainActivity.CURRENT_USER_KEY, registeredUser);
-
-                registeringToast.cancel();
-
-                Toast.makeText(getContext(), "Hello " + Cache.getInstance().getCurrUser().getName(), Toast.LENGTH_LONG).show();
                 try {
-                    startActivity(intent);
+                    registerObserver.handleRegisterSuccess(registeredUser, authToken);
                 } catch (Exception e) {
-                    System.out.println(e.getMessage());
+                    registerObserver.handleRegisterThrewException(e);
                 }
             } else if (msg.getData().containsKey(RegisterTask.MESSAGE_KEY)) {
                 String message = msg.getData().getString(RegisterTask.MESSAGE_KEY);
-                Toast.makeText(getContext(), "Failed to register: " + message, Toast.LENGTH_LONG).show();
+                registerObserver.handleRegisterFail(message);
             } else if (msg.getData().containsKey(RegisterTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(RegisterTask.EXCEPTION_KEY);
-                Toast.makeText(getContext(), "Failed to register because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+                registerObserver.handleRegisterThrewException(ex);
             }
         }
-    }*/
+    }
 }
