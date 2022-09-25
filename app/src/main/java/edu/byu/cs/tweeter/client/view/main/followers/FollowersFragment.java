@@ -31,7 +31,6 @@ import edu.byu.cs.client.R;
 import edu.byu.cs.tweeter.client.backgroundTask.GetFollowersTask;
 import edu.byu.cs.tweeter.client.backgroundTask.GetUserTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.presenter.FollowersPresenter;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -49,12 +48,8 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
 
     private static final int PAGE_SIZE = 10;
 
-    private ImageView userImage;
-    private TextView userAlias;
-    private TextView userName;
-    private Toast followersToast;
     private User user;
-    private FollowersPresenter followersPresenter;
+    private FollowersPresenter presenter;
 
     private FollowersRecyclerViewAdapter followersRecyclerViewAdapter;
 
@@ -82,7 +77,7 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
 
         //noinspection ConstantConditions
         user = (User) getArguments().getSerializable(USER_KEY);
-
+        presenter = new FollowersPresenter(this);
         RecyclerView followersRecyclerView = view.findViewById(R.id.followersRecyclerView);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this.getContext());
@@ -92,8 +87,7 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
         followersRecyclerView.setAdapter(followersRecyclerViewAdapter);
 
         followersRecyclerView.addOnScrollListener(new FollowRecyclerViewPaginationScrollListener(layoutManager));
-
-        followersPresenter = new FollowersPresenter(this);
+        //Presenter Calls method to load more
         return view;
     }
 
@@ -101,6 +95,10 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
      * The ViewHolder for the RecyclerView that displays the follower data.
      */
     private class FollowersHolder extends RecyclerView.ViewHolder {
+
+        private final ImageView userImage;
+        private final TextView userAlias;
+        private final TextView userName;
 
         /**
          * Creates an instance and sets an OnClickListener for the user's row.
@@ -117,7 +115,7 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    followersPresenter.FollowersHolder(userAlias.getText().toString());
+                    presenter.FollowersHolder(userAlias.getText().toString());
                 }
             });
         }
@@ -128,14 +126,18 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
          * @param user the user.
          */
         void bindUser(User user) {
-            followersPresenter.bindUserToView(user);
+            if (user == null)
+                Log.e(LOG_TAG, "user is null!");
+            userAlias.setText(user.getAlias());
+            userName.setText(user.getName());
+
+            Picasso.get().load(user.getImageUrl()).into(userImage);
         }
     }
 
     /**
      * The adapter for the RecyclerView that displays the follower data.
      */
-    //TODO: Here
     private class FollowersRecyclerViewAdapter extends RecyclerView.Adapter<FollowersHolder> {
 
         private final List<User> users = new ArrayList<>();
@@ -159,7 +161,8 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
          * @param newUsers the users to add.
          */
         void addItems(List<User> newUsers) {
-            int startInsertPosition = followersPresenter.addItems(newUsers, users);
+            int startInsertPosition = users.size();
+            users.addAll(newUsers);
             this.notifyItemRangeInserted(startInsertPosition, newUsers.size());
         }
 
@@ -170,7 +173,7 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
          * @param user the user to add.
          */
         void addItem(User user) {
-            followersPresenter.addItem(user, users);
+            users.add(user);
             this.notifyItemInserted(users.size() - 1);
         }
 
@@ -181,7 +184,8 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
          * @param user the user to remove.
          */
         void removeItem(User user) {
-            int position = followersPresenter.removeItem(user, users);
+            int position = users.indexOf(user);
+            users.remove(position);
             this.notifyItemRemoved(position);
         }
 
@@ -246,6 +250,15 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
             return (position == users.size() - 1 && isLoading) ? LOADING_DATA_VIEW : ITEM_VIEW;
         }
 
+        void setLoading(boolean value) {
+            isLoading = value;
+            if (value) {
+                addLoadingFooter();
+            }
+            else {
+                removeLoadingFooter();
+            }
+        }
         /**
          * Causes the Adapter to display a loading footer and make a request to get more following
          * data.
@@ -354,34 +367,26 @@ public class FollowersFragment extends Fragment implements FollowersPresenter.Fo
         }
     }
 
-    //View Methods
     @Override
-    public void displayInfoMessage(String message){
-        followersToast =  Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
-        followersToast.show();
+    public void setLoading(boolean value) {
+        followersRecyclerViewAdapter.setLoading(value);
     }
-    @Override
-    public void clearInfoMessage(){
-        if (followersToast != null) {
-            followersToast.cancel();
-            followersToast = null;
-        }
-    }
-    @Override
-    public void bindUserView(User user){
-        if (user == null) {
-            Log.e(LOG_TAG, "user is null!");
-        }
-        userAlias.setText(user.getAlias());
-        userName.setText(user.getName());
 
-        Picasso.get().load(user.getImageUrl()).into(userImage);
-    }
     @Override
-    public void getUser(User user){
+    public void addItems(List<User> newUsers) {
+        followersRecyclerViewAdapter.addItems(newUsers);
+    }
+
+    @Override
+    public void updateInfoView(User user){
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
-
         startActivity(intent);
     }
+
+    @Override
+    public void displayInfoMessage(String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+    }
+
 }
