@@ -3,33 +3,38 @@ package edu.byu.cs.tweeter.client.presenter;
 import java.util.List;
 
 import edu.byu.cs.tweeter.client.model.service.FollowService;
+import edu.byu.cs.tweeter.client.view.main.following.FollowingFragment;
+import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class FollowersPresenter implements FollowService.FollowersObserver {
+public class FollowingPresenter implements FollowService.FollowingObserver {
 
     public static final int PAGE_SIZE = 10;
 
-    private FollowersView view;
+    private final FollowingView view;
+    private final User user;
+    private final AuthToken authToken;
 
-    private User user;
-    private User lastFollower;
+    private User lastFollowee;
     private boolean hasMorePages = true;
     private boolean isLoading = false;
 
-    public interface FollowersView{
+
+    public interface FollowingView{
         void setLoading(boolean value);
         void addItems(List<User> newUsers);
-        void updateInfoView(User user);
         void displayInfoMessage(String message);
+        void updateInfoView(User user);
     }
-
-    public FollowersPresenter(User user,FollowersView view){
-        this.user = user;
+    public FollowingPresenter(FollowingView view, User user, AuthToken token) {
         this.view = view;
+        this.user = user;
+        this.authToken = token;
     }
 
-    private void setLastFollower(User lastFollower) {
-        this.lastFollower = lastFollower;
+
+    private void setLastFollowee(User lastFollowee) {
+        this.lastFollowee = lastFollowee;
     }
 
     public boolean isHasMorePages() {
@@ -48,54 +53,53 @@ public class FollowersPresenter implements FollowService.FollowersObserver {
         isLoading = loading;
     }
 
-    public void FollowersHolder(String username){
+    public void FollowingHolder(String username){
         view.displayInfoMessage("Getting user's profile...");
-        new FollowService().FollowersHolder(username, this);
+        new FollowService().FollowingHolder(username, this);
     }
-
-    public void LoadMoreItems(){
+    public void LoadMoreItems() {
         if (!isLoading && hasMorePages) {
             setLoading(true);
             view.setLoading(true);
 
-            new FollowService().FollowersLoadMore(user, PAGE_SIZE, lastFollower, this);
+            new FollowService().FollowingLoadMore(user, PAGE_SIZE,lastFollowee,this);
         }
     }
 
     @Override
-    public void FollowerHolderSuccess(User user) {
+    public void FollowingHolderSuccess(User user) {
         view.updateInfoView(user);
     }
 
     @Override
-    public void FollowerHolderFail(String message) {
+    public void FollowingHolderFail(String message) {
         view.displayInfoMessage(message);
     }
 
     @Override
-    public void FollowerHolderException(String message) {
+    public void FollowingHolderException(String message) {
         view.displayInfoMessage(message);
     }
 
     @Override
-    public void GetFollowersSuccess(List<User> followers, boolean hasMorePages) {
-        setLastFollower((followers.size() > 0) ? followers.get(followers.size() - 1) : null);
+    public void GetFollowingSuccess(List<User> following, boolean hasMorePages) {
+        setLastFollowee((following.size() > 0) ? following.get(following.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
         view.setLoading(false);
-        view.addItems(followers);
+        view.addItems(following);
         setLoading(false);
     }
 
     @Override
-    public void GetFollowersFail(String message) {
+    public void GetFollowingFail(String message) {
         view.setLoading(false);
         view.displayInfoMessage(message);
         setLoading(false);
     }
 
     @Override
-    public void GetFollowersException(String message) {
+    public void GetFollowingException(String message) {
         view.setLoading(false);
         view.displayInfoMessage(message);
         setLoading(false);
