@@ -2,23 +2,24 @@ package edu.byu.cs.tweeter.client.presenter;
 
 import java.util.List;
 
-import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class StoryPresenter implements StatusService.StoryObserver {
-    public static final int PAGE_SIZE = 10;
+public class FeedPresenter implements StatusService.FeedObserver {
 
-    private StoryView view;
+    private static final int PAGE_SIZE = 10;
+
+    private FeedView view;
 
     private User user;
-    private Status lastStatus;
+    private Status lastFeed;
 
     private boolean hasMorePages = true;
     private boolean isLoading = false;
 
-    public interface StoryView {
+
+    public interface FeedView {
         void setLoading(boolean value);
 
         void addItems(List<Status> statuses);
@@ -28,9 +29,9 @@ public class StoryPresenter implements StatusService.StoryObserver {
         void displayInfoMessage(String message);
     }
 
-    public StoryPresenter(User user, StoryView view) {
-        this.user = user;
+    public FeedPresenter(User user, FeedView view){
         this.view = view;
+        this.user = user;
     }
 
     public User getUser() {
@@ -41,12 +42,12 @@ public class StoryPresenter implements StatusService.StoryObserver {
         this.user = user;
     }
 
-    public Status getLastStatus() {
-        return lastStatus;
+    public Status getLastFeed() {
+        return lastFeed;
     }
 
-    public void setLastStatus(Status lastStatus) {
-        this.lastStatus = lastStatus;
+    public void setLastFeed(Status lastFeed) {
+        this.lastFeed = lastFeed;
     }
 
     public boolean isHasMorePages() {
@@ -65,54 +66,54 @@ public class StoryPresenter implements StatusService.StoryObserver {
         isLoading = loading;
     }
 
-    public void LoadMoreItems() {
+    public void LoadMoreItems(){
         if (!isLoading && hasMorePages) {
             setLoading(true);
             view.setLoading(true);
 
-            new StatusService().StoryLoadMore(user, PAGE_SIZE, lastStatus, this);
+            new StatusService().FeedLoadMore(user, PAGE_SIZE, lastFeed, this);
         }
     }
 
-    public void StoryHolder(String username) {
+    public void FeedHolder(String username){
         view.displayInfoMessage("Getting user's profile...");
-        new StatusService().StoryHolder(username, this);
+        new StatusService().FeedHolder(username, this);
     }
 
     @Override
-    public void StoryHolderSuccess(User user) {
+    public void FeedHolderSuccess(User user) {
         view.updateInfoView(user);
     }
 
     @Override
-    public void StoryHolderFail(String message) {
+    public void FeedHolderFail(String message) {
         view.displayInfoMessage(message);
     }
 
     @Override
-    public void StoryHolderException(String message) {
+    public void FeedHolderException(String message) {
         view.displayInfoMessage(message);
     }
 
     @Override
-    public void GetStorySuccess(List<Status> statuses, boolean hasMorePages) {
-        setLastStatus((statuses.size() > 0) ? statuses.get(statuses.size() - 1) : null);
+    public void GetFeedSuccess(List<Status> stories, boolean hasMorePages) {
+        setLastFeed((stories.size() > 0) ? stories.get(stories.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
         view.setLoading(false);
-        view.addItems(statuses);
+        view.addItems(stories);
         setLoading(false);
     }
 
     @Override
-    public void GetStoryFail(String message) {
+    public void GetFeedFail(String message) {
         view.setLoading(false);
         view.displayInfoMessage(message);
         setLoading(false);
     }
 
     @Override
-    public void GetStoryException(String message) {
+    public void GetFeedException(String message) {
         view.setLoading(false);
         view.displayInfoMessage(message);
         setLoading(false);
