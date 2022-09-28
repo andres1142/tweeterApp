@@ -1,16 +1,9 @@
 package edu.byu.cs.tweeter.client.model.service;
 
-import android.os.Handler;
-import android.os.Message;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import edu.byu.cs.client.R;
 import edu.byu.cs.tweeter.client.backgroundTask.FollowTask;
 import edu.byu.cs.tweeter.client.backgroundTask.GetFollowersCountTask;
 import edu.byu.cs.tweeter.client.backgroundTask.GetFollowersTask;
@@ -28,33 +21,23 @@ import edu.byu.cs.tweeter.client.backgroundTask.handler.GetUserFollowerHandler;
 import edu.byu.cs.tweeter.client.backgroundTask.handler.GetUserFollowingHandler;
 import edu.byu.cs.tweeter.client.backgroundTask.handler.IsFollowerHandler;
 import edu.byu.cs.tweeter.client.backgroundTask.handler.UnfollowHandler;
+import edu.byu.cs.tweeter.client.backgroundTask.observer.FollowInteraction;
+import edu.byu.cs.tweeter.client.backgroundTask.observer.ServiceObserver;
 import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.view.main.MainActivity;
-import edu.byu.cs.tweeter.model.domain.Follow;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class FollowService {
 
-    public interface FollowMainObserver {
-        void isFollowerSuccess(boolean isFollower);
-        void isFollowerFail(String message);
-        void isFollowerException(String message);
+    public interface FollowMainObserver extends FollowInteraction {
 
         void unfollowUserSuccess(boolean value);
-        void unfollowUserFail(String message);
-        void unfollowUserExceptionException(String message);
 
-        void followUserSuccess(boolean value);
-        void followUserFail(String message);
-        void followUserExceptionException(String message);
 
         void getFollowersCountSuccess(int value);
-        void getFollowersCountFail(String message);
-        void getFollowersCountException(String message);
+
 
         void getFollowingCountSuccess(int value);
-        void getFollowingCountFail(String message);
-        void getFollowingCountException(String message);
+
     }
 
     public interface FollowingObserver {
