@@ -2,12 +2,13 @@ package edu.byu.cs.tweeter.client.presenter;
 
 import java.util.List;
 
+import edu.byu.cs.tweeter.client.backgroundTask.observer.HolderAdapterObserver;
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.view.main.following.FollowingFragment;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class FollowingPresenter implements FollowService.FollowingObserver {
+public class FollowingPresenter implements HolderAdapterObserver {
 
     public static final int PAGE_SIZE = 10;
 
@@ -18,6 +19,7 @@ public class FollowingPresenter implements FollowService.FollowingObserver {
     private User lastFollowee;
     private boolean hasMorePages = true;
     private boolean isLoading = false;
+
 
 
     public interface FollowingView{
@@ -66,42 +68,31 @@ public class FollowingPresenter implements FollowService.FollowingObserver {
         }
     }
 
+
     @Override
-    public void FollowingHolderSuccess(User user) {
-        view.updateInfoView(user);
+    public <T> void handleHolderSuccess(T item) {
+        view.updateInfoView((User) item);
     }
 
     @Override
-    public void FollowingHolderFail(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void FollowingHolderException(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void GetFollowingSuccess(List<User> following, boolean hasMorePages) {
-        setLastFollowee((following.size() > 0) ? following.get(following.size() - 1) : null);
+    public <T> void handleGetInfoSuccess(List<T> items, boolean hasMorePages) {
+        setLastFollowee((items.size() > 0) ? (User) items.get(items.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
         view.setLoading(false);
-        view.addItems(following);
+        view.addItems((List<User>) items);
         setLoading(false);
     }
 
     @Override
-    public void GetFollowingFail(String message) {
+    public void handleGetInfoFailException(String message) {
         view.setLoading(false);
         view.displayInfoMessage(message);
         setLoading(false);
     }
 
     @Override
-    public void GetFollowingException(String message) {
-        view.setLoading(false);
+    public void handleExceptionAndFail(String message) {
         view.displayInfoMessage(message);
-        setLoading(false);
     }
 }

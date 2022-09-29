@@ -6,12 +6,15 @@ import android.graphics.drawable.BitmapDrawable;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 
+import edu.byu.cs.tweeter.client.backgroundTask.observer.UserInteractionObserver;
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.service.UserService;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class RegisterPresenter implements UserService.RegisterObserver {
+public class RegisterPresenter implements UserInteractionObserver {
+
+
 
     //Methods that the presenter can call on the view(the contract)
     public interface RegisterView {
@@ -77,24 +80,23 @@ public class RegisterPresenter implements UserService.RegisterObserver {
     }
 
 
-    //The methods related to observing the model layer
+
     @Override
-    public void handleRegisterSuccess(User user, AuthToken token) {
+    public void handleUserInteractionSuccess(User user, AuthToken authToken) {
         view.clearInfoMessage();
         view.clearErrorMessage();
 
         view.displayInfoMessage("Hello " + Cache.getInstance().getCurrUser().getName());
-        view.navigateToUser(user, token);
+        view.navigateToUser(user, authToken);
     }
 
     @Override
-    public void handleRegisterFail(String message) {
+    public void handlePostSuccess() {
+
+    }
+
+    @Override
+    public void handleExceptionAndFail(String message) {
         view.displayInfoMessage("Failed to register: " + message);
-
-    }
-
-    @Override
-    public void handleRegisterThrewException(Exception e) {
-        view.displayInfoMessage("Failed to register because of exception: " + e.getMessage());
     }
 }

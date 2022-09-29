@@ -224,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
     }
 
 
+
     @Override
     public void logOutUser() {
         Toast.makeText(MainActivity.this, "Logging Out...", Toast.LENGTH_LONG).show();

@@ -1,12 +1,16 @@
 package edu.byu.cs.tweeter.client.presenter;
 
+import edu.byu.cs.tweeter.client.backgroundTask.observer.UserInteractionObserver;
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.service.UserService;
-import edu.byu.cs.tweeter.client.view.login.LoginFragment;
+
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class LogInPresenter implements UserService.LogInObserver {
+public class LogInPresenter implements UserInteractionObserver {
+
+
+
 
     //Methods that the presenter can call on the view(the contract)
     public interface LogInView {
@@ -40,7 +44,7 @@ public class LogInPresenter implements UserService.LogInObserver {
         return null;
     }
 
-    //Methods that the view can call
+
     public void LogIn(String username, String password) {
         String errorMessage = validateLogin(username, password);
         if (errorMessage == null) {
@@ -52,10 +56,8 @@ public class LogInPresenter implements UserService.LogInObserver {
         }
     }
 
-
-    //The methods related to observing the model layer
     @Override
-    public void handleLogInSuccess(User user, AuthToken authToken) {
+    public void handleUserInteractionSuccess(User user, AuthToken authToken) {
         view.clearInfoMessage();
         view.clearErrorMessage();
 
@@ -64,12 +66,10 @@ public class LogInPresenter implements UserService.LogInObserver {
     }
 
     @Override
-    public void handleLogInFail(String message) {
+    public void handleExceptionAndFail(String message) {
         view.displayInfoMessage("Failed to login: " + message);
     }
 
     @Override
-    public void handleLogInThrewException(Exception e) {
-        view.displayErrorMessage("Failed to login because of exception: " + e.getMessage());
-    }
+    public void handlePostSuccess() {}
 }

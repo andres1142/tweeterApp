@@ -7,16 +7,16 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.byu.cs.tweeter.client.backgroundTask.observer.FollowInteraction;
-import edu.byu.cs.tweeter.client.backgroundTask.observer.ServiceObserver;
+import edu.byu.cs.tweeter.client.backgroundTask.observer.FollowInteractionObserver;
+import edu.byu.cs.tweeter.client.backgroundTask.observer.UserInteractionObserver;
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.client.model.service.UserService;
+import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class MainPresenter implements FollowService.FollowMainObserver, UserService.LogOutObserver,
-        StatusService.PostStatusObserver, FollowInteraction {
+public class MainPresenter implements UserInteractionObserver, FollowInteractionObserver {
 
     MainView view;
 
@@ -140,46 +140,12 @@ public class MainPresenter implements FollowService.FollowMainObserver, UserServ
         }
     }
 
+    //FollowInteraction
     @Override
-    public void isFollowerSuccess(boolean isFollower) {
-        view.isFollower(isFollower);
-    }
-
-    @Override
-    public void isFollowerFail(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void isFollowerException(String message) {
-        view.displayInfoMessage(message);
-    }
-
-
-    @Override
-    public void unfollowUserSuccess(boolean value) {
+    public void handleSuccessFollowUnfollow(boolean value) {
         view.updateFollowingFollowers(value);
         view.enableFollowButton(true);
     }
-
-    @Override
-    public void followUserSuccess(boolean value) {
-        view.updateFollowingFollowers(value);
-        view.enableFollowButton(true);
-    }
-
-    @Override
-    public void getFollowersCountSuccess(int value) {
-        view.setFollowerCount(value);
-    }
-
-
-    @Override
-    public void getFollowingCountSuccess(int value) {
-        view.setFollowingCount(value);
-    }
-
-
 
     @Override
     public void ExceptionFailFollowUnfollow(String message){
@@ -187,6 +153,30 @@ public class MainPresenter implements FollowService.FollowMainObserver, UserServ
         view.enableFollowButton(true);
     }
 
+    @Override
+    public void handleFollowerCount(int value) {
+        view.setFollowerCount(value);
+    }
+
+    @Override
+    public void handleFollowingCount(int value) {
+        view.setFollowingCount(value);
+    }
+
+    @Override
+    public void handleIsFollower(boolean value){
+        view.isFollower(value);
+    }
+
+    @Override
+    public void handleUserInteractionSuccess(User user, AuthToken authToken) {
+        view.logOutUser();
+    }
+
+    @Override
+    public void handlePostSuccess(){
+        view.displayInfoMessage("Successfully Posted!");
+    }
 
     @Override
     public void handleExceptionAndFail(String message) {
@@ -194,36 +184,4 @@ public class MainPresenter implements FollowService.FollowMainObserver, UserServ
     }
 
 
-
-    //User Service
-    @Override
-    public void logOutSuccess() {
-        view.logOutUser();
-    }
-
-    @Override
-    public void logOutFail(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void logOutException(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    //Status Service
-    @Override
-    public void postSuccess() {
-        view.displayInfoMessage("Successfully Posted!");
-    }
-
-    @Override
-    public void postFail(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void postException(String message) {
-        view.displayInfoMessage(message);
-    }
 }

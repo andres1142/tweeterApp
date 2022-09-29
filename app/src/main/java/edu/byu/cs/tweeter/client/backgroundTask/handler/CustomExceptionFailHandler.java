@@ -10,11 +10,11 @@ import androidx.annotation.NonNull;
 import edu.byu.cs.tweeter.client.backgroundTask.BackgroundTask;
 import edu.byu.cs.tweeter.client.backgroundTask.observer.ServiceObserver;
 
-public abstract class BackgroundTaskHandler<T extends ServiceObserver> extends Handler {
+public abstract class CustomExceptionFailHandler<T extends ServiceObserver> extends Handler {
 
     private final T observer;
 
-    public BackgroundTaskHandler(T observer) {
+    public CustomExceptionFailHandler(T observer) {
         super(Looper.getMainLooper());
         this.observer = observer;
     }
@@ -26,12 +26,13 @@ public abstract class BackgroundTaskHandler<T extends ServiceObserver> extends H
             handleSuccessMessage(observer, msg.getData());
         } else if (msg.getData().containsKey(BackgroundTask.MESSAGE_KEY)) {
             String message = msg.getData().getString(BackgroundTask.MESSAGE_KEY);
-            observer.handleExceptionAndFail(message);
+            handleFailureException(observer, message);
         } else if (msg.getData().containsKey(BackgroundTask.EXCEPTION_KEY)) {
             Exception ex = (Exception) msg.getData().getSerializable(BackgroundTask.EXCEPTION_KEY);
-            observer.handleExceptionAndFail(ex.getMessage());
+            handleFailureException(observer, ex.getMessage());
         }
     }
 
     protected abstract void handleSuccessMessage(T observer, Bundle data);
+    protected abstract void handleFailureException(T observer, String message);
 }

@@ -2,10 +2,11 @@ package edu.byu.cs.tweeter.client.presenter;
 
 import java.util.List;
 
+import edu.byu.cs.tweeter.client.backgroundTask.observer.HolderAdapterObserver;
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class FollowersPresenter implements FollowService.FollowersObserver {
+public class FollowersPresenter implements HolderAdapterObserver {
 
     public static final int PAGE_SIZE = 10;
 
@@ -15,6 +16,8 @@ public class FollowersPresenter implements FollowService.FollowersObserver {
     private User lastFollower;
     private boolean hasMorePages = true;
     private boolean isLoading = false;
+
+
 
     public interface FollowersView{
         void setLoading(boolean value);
@@ -63,41 +66,29 @@ public class FollowersPresenter implements FollowService.FollowersObserver {
     }
 
     @Override
-    public void FollowerHolderSuccess(User user) {
-        view.updateInfoView(user);
+    public <T> void handleHolderSuccess(T item) {
+        view.updateInfoView((User) item);
     }
 
     @Override
-    public void FollowerHolderFail(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void FollowerHolderException(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void GetFollowersSuccess(List<User> followers, boolean hasMorePages) {
-        setLastFollower((followers.size() > 0) ? followers.get(followers.size() - 1) : null);
+    public <T> void handleGetInfoSuccess(List<T> items, boolean hasMorePages) {
+        setLastFollower((items.size() > 0) ? (User) items.get(items.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
         view.setLoading(false);
-        view.addItems(followers);
+        view.addItems((List<User>) items);
         setLoading(false);
     }
 
     @Override
-    public void GetFollowersFail(String message) {
+    public void handleGetInfoFailException(String message){
         view.setLoading(false);
         view.displayInfoMessage(message);
         setLoading(false);
     }
 
     @Override
-    public void GetFollowersException(String message) {
-        view.setLoading(false);
+    public void handleExceptionAndFail(String message) {
         view.displayInfoMessage(message);
-        setLoading(false);
     }
 }

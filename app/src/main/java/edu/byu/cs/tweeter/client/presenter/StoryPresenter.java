@@ -2,12 +2,13 @@ package edu.byu.cs.tweeter.client.presenter;
 
 import java.util.List;
 
+import edu.byu.cs.tweeter.client.backgroundTask.observer.HolderAdapterObserver;
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class StoryPresenter implements StatusService.StoryObserver {
+public class StoryPresenter implements HolderAdapterObserver {
     public static final int PAGE_SIZE = 10;
 
     private StoryView view;
@@ -79,42 +80,31 @@ public class StoryPresenter implements StatusService.StoryObserver {
         new StatusService().StoryHolder(username, this);
     }
 
+
     @Override
-    public void StoryHolderSuccess(User user) {
+    public <T> void handleHolderSuccess(T item) {
         view.updateInfoView(user);
     }
 
     @Override
-    public void StoryHolderFail(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void StoryHolderException(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void GetStorySuccess(List<Status> statuses, boolean hasMorePages) {
-        setLastStatus((statuses.size() > 0) ? statuses.get(statuses.size() - 1) : null);
+    public <T> void handleGetInfoSuccess(List<T> items, boolean hasMorePages) {
+        setLastStatus((items.size() > 0) ? (Status) items.get(items.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
         view.setLoading(false);
-        view.addItems(statuses);
+        view.addItems((List<Status>) items);
         setLoading(false);
     }
 
     @Override
-    public void GetStoryFail(String message) {
+    public void handleGetInfoFailException(String message) {
         view.setLoading(false);
         view.displayInfoMessage(message);
         setLoading(false);
     }
 
     @Override
-    public void GetStoryException(String message) {
-        view.setLoading(false);
+    public void handleExceptionAndFail(String message) {
         view.displayInfoMessage(message);
-        setLoading(false);
     }
 }

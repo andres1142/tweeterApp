@@ -8,13 +8,13 @@ import android.os.Message;
 import androidx.annotation.NonNull;
 
 import edu.byu.cs.tweeter.client.backgroundTask.BackgroundTask;
-import edu.byu.cs.tweeter.client.backgroundTask.observer.FollowInteraction;
+import edu.byu.cs.tweeter.client.backgroundTask.observer.ServiceObserver;
 
-public abstract class FollowBackgroundHandler<T extends FollowInteraction> extends Handler {
+public abstract class SimpleTaskHandler<T extends ServiceObserver> extends Handler {
 
     private final T observer;
 
-    public FollowBackgroundHandler(T observer) {
+    public SimpleTaskHandler(T observer) {
         super(Looper.getMainLooper());
         this.observer = observer;
     }
@@ -34,5 +34,4 @@ public abstract class FollowBackgroundHandler<T extends FollowInteraction> exten
     }
 
     protected abstract void handleSuccessMessage(T observer, Bundle data);
-    protected abstract void handleFailureException(T observer);
 }

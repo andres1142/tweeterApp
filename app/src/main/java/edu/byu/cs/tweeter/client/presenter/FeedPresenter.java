@@ -2,11 +2,12 @@ package edu.byu.cs.tweeter.client.presenter;
 
 import java.util.List;
 
+import edu.byu.cs.tweeter.client.backgroundTask.observer.HolderAdapterObserver;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class FeedPresenter implements StatusService.FeedObserver {
+public class FeedPresenter implements HolderAdapterObserver {
 
     private static final int PAGE_SIZE = 10;
 
@@ -17,6 +18,7 @@ public class FeedPresenter implements StatusService.FeedObserver {
 
     private boolean hasMorePages = true;
     private boolean isLoading = false;
+
 
 
     public interface FeedView {
@@ -40,10 +42,6 @@ public class FeedPresenter implements StatusService.FeedObserver {
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public Status getLastFeed() {
-        return lastFeed;
     }
 
     public void setLastFeed(Status lastFeed) {
@@ -80,42 +78,31 @@ public class FeedPresenter implements StatusService.FeedObserver {
         new StatusService().FeedHolder(username, this);
     }
 
+
     @Override
-    public void FeedHolderSuccess(User user) {
-        view.updateInfoView(user);
+    public <T> void handleHolderSuccess(T item) {
+        view.updateInfoView((User) item);
     }
 
     @Override
-    public void FeedHolderFail(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void FeedHolderException(String message) {
-        view.displayInfoMessage(message);
-    }
-
-    @Override
-    public void GetFeedSuccess(List<Status> stories, boolean hasMorePages) {
-        setLastFeed((stories.size() > 0) ? stories.get(stories.size() - 1) : null);
+    public <T> void handleGetInfoSuccess(List<T> items, boolean hasMorePages) {
+        setLastFeed((items.size() > 0) ? (Status) items.get(items.size() - 1) : null);
         setHasMorePages(hasMorePages);
 
         view.setLoading(false);
-        view.addItems(stories);
+        view.addItems((List<Status>) items);
         setLoading(false);
     }
 
     @Override
-    public void GetFeedFail(String message) {
+    public void handleGetInfoFailException(String message) {
         view.setLoading(false);
         view.displayInfoMessage(message);
         setLoading(false);
     }
 
     @Override
-    public void GetFeedException(String message) {
-        view.setLoading(false);
+    public void handleExceptionAndFail(String message) {
         view.displayInfoMessage(message);
-        setLoading(false);
     }
 }
