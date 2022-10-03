@@ -12,6 +12,9 @@ import edu.byu.cs.tweeter.client.backgroundTask.observer.UserInteractionObserver
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.client.model.service.UserService;
+import edu.byu.cs.tweeter.client.presenter.View.MainView;
+import edu.byu.cs.tweeter.client.presenter.View.UserInteractionView;
+import edu.byu.cs.tweeter.client.presenter.View.View;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -19,25 +22,6 @@ import edu.byu.cs.tweeter.model.domain.User;
 public class MainPresenter implements UserInteractionObserver, FollowInteractionObserver {
 
     MainView view;
-
-
-    public interface MainView {
-        void isFollower(boolean isFollower);
-
-        void updateFollowingFollowers(boolean value);
-
-        void setFollowerCount(int value);
-
-        void setFollowingCount(int value);
-
-        void enableFollowButton(boolean value);
-
-        void displayInfoMessage(String message);
-
-        void clearInfoMessage();
-
-        void logOutUser();
-    }
 
     public MainPresenter(MainView view) {
         this.view = view;
@@ -182,6 +166,4 @@ public class MainPresenter implements UserInteractionObserver, FollowInteraction
     public void handleExceptionAndFail(String message) {
         view.displayInfoMessage(message);
     }
-
-
 }

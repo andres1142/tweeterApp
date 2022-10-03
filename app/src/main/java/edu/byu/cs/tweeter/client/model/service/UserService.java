@@ -26,14 +26,13 @@ import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class UserService {
+public class UserService extends GeneralService{
 
     public void LogIn(String password, String username, UserInteractionObserver observer) {
         // Send the login request.
         LoginTask loginTask = new LoginTask(username, password,
                 new LoginHandler(observer));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(loginTask);
+        ExecuteTask(loginTask);
     }
 
     public void Register(String firstName, String lastName, String username, String password,
@@ -43,13 +42,11 @@ public class UserService {
         RegisterTask registerTask = new RegisterTask(firstName, lastName,
                 username, password, imageBytesBase64, new RegisterHandler(observer));
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(registerTask);
+        ExecuteTask(registerTask);
     }
 
     public void LogOut(UserInteractionObserver observer){
         LogoutTask logoutTask = new LogoutTask(Cache.getInstance().getCurrUserAuthToken(), new LogoutHandler(observer));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(logoutTask);
+        ExecuteTask(logoutTask);
     }
 }

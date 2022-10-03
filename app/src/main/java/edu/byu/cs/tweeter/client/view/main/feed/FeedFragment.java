@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -30,14 +29,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.byu.cs.client.R;
-import edu.byu.cs.tweeter.client.backgroundTask.GetFeedTask;
-import edu.byu.cs.tweeter.client.backgroundTask.GetUserTask;
-import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.presenter.FeedPresenter;
+import edu.byu.cs.tweeter.client.presenter.HolderAdapterPresenter;
+import edu.byu.cs.tweeter.client.presenter.View.ListsView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -45,7 +40,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the "Feed" tab.
  */
-public class FeedFragment extends Fragment implements FeedPresenter.FeedView {
+public class FeedFragment extends Fragment implements ListsView {
     private static final String LOG_TAG = "FeedFragment";
     private static final String USER_KEY = "UserKey";
 
@@ -53,7 +48,7 @@ public class FeedFragment extends Fragment implements FeedPresenter.FeedView {
     private static final int ITEM_VIEW = 1;
 
     private User user;
-    private FeedPresenter presenter;
+    private HolderAdapterPresenter presenter;
 
     private FeedRecyclerViewAdapter feedRecyclerViewAdapter;
 
@@ -81,7 +76,7 @@ public class FeedFragment extends Fragment implements FeedPresenter.FeedView {
 
         //noinspection ConstantConditions
         user = (User) getArguments().getSerializable(USER_KEY);
-        presenter = new FeedPresenter(user, this);
+        presenter = new HolderAdapterPresenter(user, this);
         RecyclerView feedRecyclerView = view.findViewById(R.id.feedRecyclerView);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this.getContext());
@@ -91,7 +86,7 @@ public class FeedFragment extends Fragment implements FeedPresenter.FeedView {
         feedRecyclerView.setAdapter(feedRecyclerViewAdapter);
 
         feedRecyclerView.addOnScrollListener(new FeedRecyclerViewPaginationScrollListener(layoutManager));
-        presenter.LoadMoreItems();
+        presenter.LoadMoraItems(false);
         return view;
     }
 
@@ -123,7 +118,7 @@ public class FeedFragment extends Fragment implements FeedPresenter.FeedView {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    presenter.FeedHolder(userAlias.getText().toString());
+                    presenter.getHolder(userAlias.getText().toString());
                 }
             });
         }
@@ -153,7 +148,7 @@ public class FeedFragment extends Fragment implements FeedPresenter.FeedView {
                         int end = s.getSpanEnd(this);
 
                         String clickable = s.subSequence(start, end).toString();
-                        presenter.FeedHolder(clickable);
+                        presenter.getHolder(clickable);
                     }
 
                     @Override
@@ -353,7 +348,7 @@ public class FeedFragment extends Fragment implements FeedPresenter.FeedView {
                     // Run this code later on the UI thread
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.postDelayed(() -> {
-                            presenter.LoadMoreItems();
+                            presenter.LoadMoraItems(false);
                     }, 0);
                 }
             }
@@ -366,8 +361,8 @@ public class FeedFragment extends Fragment implements FeedPresenter.FeedView {
     }
 
     @Override
-    public void addItems(List<Status> statuses) {
-        feedRecyclerViewAdapter.addItems(statuses);
+    public <T> void addItems(List<T> items) {
+        feedRecyclerViewAdapter.addItems((List<Status>) items);
     }
 
     @Override

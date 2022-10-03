@@ -1,45 +1,24 @@
 package edu.byu.cs.tweeter.client.presenter;
 
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-
-import java.io.ByteArrayOutputStream;
-import java.util.Base64;
-
 import edu.byu.cs.tweeter.client.backgroundTask.observer.UserInteractionObserver;
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.service.UserService;
+import edu.byu.cs.tweeter.client.presenter.View.RegisterLogInPresenter;
+import edu.byu.cs.tweeter.client.presenter.View.UserInteractionView;
+import edu.byu.cs.tweeter.client.presenter.View.View;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
-public class RegisterPresenter implements UserInteractionObserver {
+public class RegisterPresenter extends UserInteractionPresenter implements UserInteractionObserver {
 
 
-
-    //Methods that the presenter can call on the view(the contract)
-    public interface RegisterView {
-        void clearErrorMessage();
-
-        void displayErrorMessage(String message);
-
-        void displayImageNotFound();
-
-        void clearInfoMessage();
-
-        void displayInfoMessage(String message);
-
-        void navigateToUser(User user, AuthToken token);
-    }
-
-    private RegisterView view;
-
-    public RegisterPresenter(RegisterView view) {
-        this.view = view;
+    public RegisterPresenter(RegisterLogInPresenter view) {
+        super(view);
     }
 
     public void noImageFound() {
-        view.clearErrorMessage();
-        view.displayImageNotFound();
+        getView().clearErrorMessage();
+        getView().displayImageNotFound();
     }
 
     public String validateRegistration(String firstName, String lastName, String username,
@@ -71,32 +50,11 @@ public class RegisterPresenter implements UserInteractionObserver {
         String errorMessage = validateRegistration(firstName, lastName, username, password);
 
         if (errorMessage == null) {
-            view.clearInfoMessage();
-            view.displayInfoMessage("Registering...");
+            getView().clearInfoMessage();
+            getView().displayInfoMessage("Registering...");
             new UserService().Register(firstName, lastName, username, password, imageToUpload, this);
         } else {
-            view.displayErrorMessage(errorMessage);
+            getView().displayErrorMessage(errorMessage);
         }
-    }
-
-
-
-    @Override
-    public void handleUserInteractionSuccess(User user, AuthToken authToken) {
-        view.clearInfoMessage();
-        view.clearErrorMessage();
-
-        view.displayInfoMessage("Hello " + Cache.getInstance().getCurrUser().getName());
-        view.navigateToUser(user, authToken);
-    }
-
-    @Override
-    public void handlePostSuccess() {
-
-    }
-
-    @Override
-    public void handleExceptionAndFail(String message) {
-        view.displayInfoMessage("Failed to register: " + message);
     }
 }

@@ -38,15 +38,17 @@ import edu.byu.cs.tweeter.client.backgroundTask.LogoutTask;
 import edu.byu.cs.tweeter.client.backgroundTask.PostStatusTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.presenter.MainPresenter;
+import edu.byu.cs.tweeter.client.presenter.View.MainView;
 import edu.byu.cs.tweeter.client.view.login.LoginActivity;
 import edu.byu.cs.tweeter.client.view.login.StatusDialogFragment;
+import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
 /**
  * The main activity for the application. Contains tabs for feed, story, following, and followers.
  */
-public class MainActivity extends AppCompatActivity implements StatusDialogFragment.Observer, MainPresenter.MainView {
+public class MainActivity extends AppCompatActivity implements StatusDialogFragment.Observer, MainView {
 
     private static final String LOG_TAG = "MainActivity";
 
@@ -176,8 +178,6 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
         }
     }
 
-
-
     @Override
     public void isFollower(boolean isFollower) {
         if (isFollower) {
@@ -223,7 +223,11 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
         }
     }
 
-
+    @Override
+    public void displayErrorMessage(String message) {
+        infoMessage = Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG);
+        infoMessage.show();
+    }
 
     @Override
     public void logOutUser() {

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,22 +22,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.byu.cs.client.R;
-import edu.byu.cs.tweeter.client.backgroundTask.GetFollowingTask;
-import edu.byu.cs.tweeter.client.backgroundTask.GetUserTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.presenter.FollowersPresenter;
-import edu.byu.cs.tweeter.client.presenter.FollowingPresenter;
+import edu.byu.cs.tweeter.client.presenter.HolderAdapterPresenter;
+import edu.byu.cs.tweeter.client.presenter.View.ListsView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.User;
 
 /**
  * Implements the "Following" tab.
  */
-public class FollowingFragment extends Fragment implements FollowingPresenter.FollowingView {
+public class FollowingFragment extends Fragment implements ListsView {
 
     private static final String LOG_TAG = "FollowingFragment";
     private static final String USER_KEY = "UserKey";
@@ -49,7 +44,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Fo
     private static final int PAGE_SIZE = 10;
 
     private User user;
-    private FollowingPresenter presenter;
+    private HolderAdapterPresenter presenter;
 
     private FollowingRecyclerViewAdapter followingRecyclerViewAdapter;
 
@@ -76,7 +71,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Fo
         View view = inflater.inflate(R.layout.fragment_following, container, false);
 
         user = (User) getArguments().getSerializable(USER_KEY);
-        presenter = new FollowingPresenter(this, user, Cache.getInstance().getCurrUserAuthToken());
+        presenter = new HolderAdapterPresenter(user,Cache.getInstance().getCurrUserAuthToken(), this);
 
         RecyclerView followingRecyclerView = view.findViewById(R.id.followingRecyclerView);
 
@@ -87,7 +82,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Fo
         followingRecyclerView.setAdapter(followingRecyclerViewAdapter);
 
         followingRecyclerView.addOnScrollListener(new FollowRecyclerViewPaginationScrollListener(layoutManager));
-        presenter.LoadMoreItems();
+        presenter.LoadMoraItems(true);
         return view;
     }
 
@@ -115,7 +110,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Fo
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    presenter.FollowingHolder(userAlias.getText().toString());
+                    presenter.getHolder(userAlias.getText().toString());
                 }
             });
         }
@@ -303,7 +298,7 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Fo
                     // Run this code later on the UI thread
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.postDelayed(() -> {
-                        presenter.LoadMoreItems();
+                        presenter.LoadMoraItems(true);
                     }, 0);
                 }
             }
@@ -316,9 +311,10 @@ public class FollowingFragment extends Fragment implements FollowingPresenter.Fo
     }
 
     @Override
-    public void addItems(List<User> newUsers) {
-        followingRecyclerViewAdapter.addItems(newUsers);
+    public <T> void addItems(List<T> items) {
+        followingRecyclerViewAdapter.addItems((List<User>) items);
     }
+
 
     @Override
     public void updateInfoView(User user) {

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -30,14 +29,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import edu.byu.cs.client.R;
-import edu.byu.cs.tweeter.client.backgroundTask.GetStoryTask;
-import edu.byu.cs.tweeter.client.backgroundTask.GetUserTask;
-import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.presenter.StoryPresenter;
+
+import edu.byu.cs.tweeter.client.presenter.HolderAdapterPresenter;
+import edu.byu.cs.tweeter.client.presenter.View.ListsView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -45,17 +41,15 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the "Story" tab.
  */
-public class StoryFragment extends Fragment implements StoryPresenter.StoryView {
-    private static final String LOG_TAG = "StoryFragment";
+public class StoryFragment extends Fragment implements ListsView {
     private static final String USER_KEY = "UserKey";
 
     private static final int LOADING_DATA_VIEW = 0;
     private static final int ITEM_VIEW = 1;
 
-    private static final int PAGE_SIZE = 10;
 
     private User user;
-    private StoryPresenter presenter;
+    private HolderAdapterPresenter presenter;
 
     private StoryRecyclerViewAdapter storyRecyclerViewAdapter;
 
@@ -83,7 +77,7 @@ public class StoryFragment extends Fragment implements StoryPresenter.StoryView 
 
         //noinspection ConstantConditions
         user = (User) getArguments().getSerializable(USER_KEY);
-        presenter = new StoryPresenter(user, this);
+        presenter = new HolderAdapterPresenter(user, this);
         RecyclerView storyRecyclerView = view.findViewById(R.id.storyRecyclerView);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this.getContext());
@@ -93,7 +87,7 @@ public class StoryFragment extends Fragment implements StoryPresenter.StoryView 
         storyRecyclerView.setAdapter(storyRecyclerViewAdapter);
 
         storyRecyclerView.addOnScrollListener(new StoryRecyclerViewPaginationScrollListener(layoutManager));
-        presenter.LoadMoreItems();
+        presenter.LoadMoraItems(false);
         return view;
     }
 
@@ -127,7 +121,7 @@ public class StoryFragment extends Fragment implements StoryPresenter.StoryView 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    presenter.StoryHolder(userAlias.getText().toString());
+                    presenter.getHolder(userAlias.getText().toString());
                 }
             });
         }
@@ -157,7 +151,7 @@ public class StoryFragment extends Fragment implements StoryPresenter.StoryView 
                         int end = s.getSpanEnd(this);
 
                         String clickable = s.subSequence(start, end).toString();
-                        presenter.StoryHolder(clickable);
+                        presenter.getHolder(clickable);
                     }
 
                     @Override
@@ -359,7 +353,7 @@ public class StoryFragment extends Fragment implements StoryPresenter.StoryView 
                     // Run this code later on the UI thread
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.postDelayed(() -> {
-                            presenter.LoadMoreItems();
+                            presenter.LoadMoraItems(false);
                     }, 0);
                 }
             }
@@ -372,8 +366,8 @@ public class StoryFragment extends Fragment implements StoryPresenter.StoryView 
     }
 
     @Override
-    public void addItems(List<Status> statuses) {
-        storyRecyclerViewAdapter.addItems(statuses);
+    public <T> void addItems(List<T> items) {
+        storyRecyclerViewAdapter.addItems((List<Status>) items);
     }
 
     @Override

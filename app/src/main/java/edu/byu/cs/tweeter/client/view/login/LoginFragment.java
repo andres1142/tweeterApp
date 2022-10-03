@@ -22,6 +22,8 @@ import edu.byu.cs.client.R;
 import edu.byu.cs.tweeter.client.backgroundTask.LoginTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.presenter.LogInPresenter;
+import edu.byu.cs.tweeter.client.presenter.View.RegisterLogInPresenter;
+import edu.byu.cs.tweeter.client.presenter.View.UserInteractionView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -29,7 +31,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the login screen.
  */
-public class LoginFragment extends Fragment implements LogInPresenter.LogInView {
+public class LoginFragment extends Fragment implements RegisterLogInPresenter {
     private static final String LOG_TAG = "LoginFragment";
 
     private Toast loginInToast;
@@ -76,6 +78,11 @@ public class LoginFragment extends Fragment implements LogInPresenter.LogInView 
     }
 
     @Override
+    public void displayImageNotFound() {
+
+    }
+
+    @Override
     public void clearErrorMessage() {
         errorView.setText("");
     }
@@ -97,7 +104,7 @@ public class LoginFragment extends Fragment implements LogInPresenter.LogInView 
     }
 
     @Override
-    public void navigateToUser(User user) {
+    public void navigateToUser(User user, AuthToken token) {
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
 
