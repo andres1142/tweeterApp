@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.byu.cs.client.R;
-import edu.byu.cs.tweeter.client.presenter.HolderAdapterPresenter;
+import edu.byu.cs.tweeter.client.presenter.FeedPresenter;
 import edu.byu.cs.tweeter.client.presenter.View.ListsView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.Status;
@@ -48,7 +48,7 @@ public class FeedFragment extends Fragment implements ListsView {
     private static final int ITEM_VIEW = 1;
 
     private User user;
-    private HolderAdapterPresenter presenter;
+    private FeedPresenter presenter;
 
     private FeedRecyclerViewAdapter feedRecyclerViewAdapter;
 
@@ -76,7 +76,7 @@ public class FeedFragment extends Fragment implements ListsView {
 
         //noinspection ConstantConditions
         user = (User) getArguments().getSerializable(USER_KEY);
-        presenter = new HolderAdapterPresenter(user, this);
+        presenter = new FeedPresenter(user, this);
         RecyclerView feedRecyclerView = view.findViewById(R.id.feedRecyclerView);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this.getContext());
@@ -86,7 +86,7 @@ public class FeedFragment extends Fragment implements ListsView {
         feedRecyclerView.setAdapter(feedRecyclerViewAdapter);
 
         feedRecyclerView.addOnScrollListener(new FeedRecyclerViewPaginationScrollListener(layoutManager));
-        presenter.LoadMoraItems(false);
+        presenter.LoadMoreItems();
         return view;
     }
 
@@ -118,7 +118,7 @@ public class FeedFragment extends Fragment implements ListsView {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    presenter.getHolder(userAlias.getText().toString());
+                    presenter.FeedHolder(userAlias.getText().toString());
                 }
             });
         }
@@ -148,7 +148,7 @@ public class FeedFragment extends Fragment implements ListsView {
                         int end = s.getSpanEnd(this);
 
                         String clickable = s.subSequence(start, end).toString();
-                        presenter.getHolder(clickable);
+                        presenter.FeedHolder(clickable);
                     }
 
                     @Override
@@ -348,7 +348,7 @@ public class FeedFragment extends Fragment implements ListsView {
                     // Run this code later on the UI thread
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.postDelayed(() -> {
-                            presenter.LoadMoraItems(false);
+                            presenter.LoadMoreItems();
                     }, 0);
                 }
             }

@@ -1,9 +1,5 @@
 package edu.byu.cs.tweeter.client.model.service;
 
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import edu.byu.cs.tweeter.client.backgroundTask.PostStatusTask;
 import edu.byu.cs.tweeter.client.backgroundTask.handler.PostStatusHandler;
 import edu.byu.cs.tweeter.client.backgroundTask.observer.UserInteractionObserver;

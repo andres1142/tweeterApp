@@ -32,7 +32,7 @@ import java.util.List;
 
 import edu.byu.cs.client.R;
 
-import edu.byu.cs.tweeter.client.presenter.HolderAdapterPresenter;
+import edu.byu.cs.tweeter.client.presenter.StoryPresenter;
 import edu.byu.cs.tweeter.client.presenter.View.ListsView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.Status;
@@ -49,7 +49,7 @@ public class StoryFragment extends Fragment implements ListsView {
 
 
     private User user;
-    private HolderAdapterPresenter presenter;
+    private StoryPresenter presenter;
 
     private StoryRecyclerViewAdapter storyRecyclerViewAdapter;
 
@@ -77,7 +77,7 @@ public class StoryFragment extends Fragment implements ListsView {
 
         //noinspection ConstantConditions
         user = (User) getArguments().getSerializable(USER_KEY);
-        presenter = new HolderAdapterPresenter(user, this);
+        presenter = new StoryPresenter(user, this);
         RecyclerView storyRecyclerView = view.findViewById(R.id.storyRecyclerView);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this.getContext());
@@ -87,7 +87,7 @@ public class StoryFragment extends Fragment implements ListsView {
         storyRecyclerView.setAdapter(storyRecyclerViewAdapter);
 
         storyRecyclerView.addOnScrollListener(new StoryRecyclerViewPaginationScrollListener(layoutManager));
-        presenter.LoadMoraItems(false);
+        presenter.LoadMoreItems();
         return view;
     }
 
@@ -121,7 +121,7 @@ public class StoryFragment extends Fragment implements ListsView {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    presenter.getHolder(userAlias.getText().toString());
+                    presenter.StoryHolder(userAlias.getText().toString());
                 }
             });
         }
@@ -151,7 +151,7 @@ public class StoryFragment extends Fragment implements ListsView {
                         int end = s.getSpanEnd(this);
 
                         String clickable = s.subSequence(start, end).toString();
-                        presenter.getHolder(clickable);
+                        presenter.StoryHolder(clickable);
                     }
 
                     @Override
@@ -353,7 +353,7 @@ public class StoryFragment extends Fragment implements ListsView {
                     // Run this code later on the UI thread
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.postDelayed(() -> {
-                            presenter.LoadMoraItems(false);
+                            presenter.LoadMoreItems();
                     }, 0);
                 }
             }

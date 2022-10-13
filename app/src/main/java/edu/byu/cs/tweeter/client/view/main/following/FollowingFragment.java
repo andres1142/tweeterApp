@@ -25,7 +25,7 @@ import java.util.List;
 
 import edu.byu.cs.client.R;
 import edu.byu.cs.tweeter.client.cache.Cache;
-import edu.byu.cs.tweeter.client.presenter.HolderAdapterPresenter;
+import edu.byu.cs.tweeter.client.presenter.FollowingPresenter;
 import edu.byu.cs.tweeter.client.presenter.View.ListsView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -44,7 +44,7 @@ public class FollowingFragment extends Fragment implements ListsView {
     private static final int PAGE_SIZE = 10;
 
     private User user;
-    private HolderAdapterPresenter presenter;
+    private FollowingPresenter presenter;
 
     private FollowingRecyclerViewAdapter followingRecyclerViewAdapter;
 
@@ -71,7 +71,7 @@ public class FollowingFragment extends Fragment implements ListsView {
         View view = inflater.inflate(R.layout.fragment_following, container, false);
 
         user = (User) getArguments().getSerializable(USER_KEY);
-        presenter = new HolderAdapterPresenter(user,Cache.getInstance().getCurrUserAuthToken(), this);
+        presenter = new FollowingPresenter(this, user, Cache.getInstance().getCurrUserAuthToken());
 
         RecyclerView followingRecyclerView = view.findViewById(R.id.followingRecyclerView);
 
@@ -82,7 +82,7 @@ public class FollowingFragment extends Fragment implements ListsView {
         followingRecyclerView.setAdapter(followingRecyclerViewAdapter);
 
         followingRecyclerView.addOnScrollListener(new FollowRecyclerViewPaginationScrollListener(layoutManager));
-        presenter.LoadMoraItems(true);
+        presenter.LoadMoreItems();
         return view;
     }
 
@@ -110,7 +110,7 @@ public class FollowingFragment extends Fragment implements ListsView {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    presenter.getHolder(userAlias.getText().toString());
+                    presenter.FollowingHolder(userAlias.getText().toString());
                 }
             });
         }
@@ -298,7 +298,7 @@ public class FollowingFragment extends Fragment implements ListsView {
                     // Run this code later on the UI thread
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.postDelayed(() -> {
-                        presenter.LoadMoraItems(true);
+                        presenter.LoadMoreItems();
                     }, 0);
                 }
             }
