@@ -57,4 +57,14 @@ public class RegisterPresenter extends UserInteractionPresenter implements UserI
             getView().displayErrorMessage(errorMessage);
         }
     }
+
+    @Override
+    public void handlePostFail(String message) {
+
+    }
+
+    @Override
+    public void handlePostException(String message) {
+
+    }
 }

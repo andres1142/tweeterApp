@@ -42,4 +42,14 @@ public class LogInPresenter extends UserInteractionPresenter implements UserInte
             getView().displayErrorMessage(errorMessage);
         }
     }
+
+    @Override
+    public void handlePostFail(String message) {
+
+    }
+
+    @Override
+    public void handlePostException(String message) {
+
+    }
 }

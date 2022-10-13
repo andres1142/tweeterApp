@@ -22,9 +22,17 @@ import edu.byu.cs.tweeter.model.domain.User;
 public class MainPresenter implements UserInteractionObserver, FollowInteractionObserver {
 
     MainView view;
+    StatusService statusService;
 
     public MainPresenter(MainView view) {
         this.view = view;
+    }
+
+    protected StatusService getService() {
+        if(statusService == null) {
+            statusService = new StatusService();
+        }
+        return statusService;
     }
 
     public void isFollower(User selectedUser) {
@@ -33,7 +41,7 @@ public class MainPresenter implements UserInteractionObserver, FollowInteraction
 
     public void postStatus(Status newStatus) {
         view.clearInfoMessage();
-        new StatusService().PostStatus(newStatus, this);
+        getService().PostStatus(newStatus, this);
     }
 
 
@@ -160,6 +168,16 @@ public class MainPresenter implements UserInteractionObserver, FollowInteraction
     @Override
     public void handlePostSuccess(){
         view.displayInfoMessage("Successfully Posted!");
+    }
+
+    @Override
+    public void handlePostFail(String message) {
+        view.displayInfoMessage("Failed to post status: " + message);
+    }
+
+    @Override
+    public void handlePostException(String message) {
+        view.displayInfoMessage("Failed to post status because of exception: " + message);
     }
 
     @Override
